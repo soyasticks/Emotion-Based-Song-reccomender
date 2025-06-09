@@ -13,8 +13,8 @@ CORS(app, resources={r"/*": {"origins": ["http://localhost:8000", "null"]}})    
 # CORS(app)
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-    client_id="0b066f979c104fc79e8b067f91dd35c2",
-    client_secret="63bbdb68211c401cbdf50ccd91538121"
+    client_id="your client ID",
+    client_secret="your client secret "
 ))
 
 mood_map = {                 #map emotions to genres
