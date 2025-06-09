@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Emotion-Based Music Recommender</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f7f7f7;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    .hero {
+      position: relative;
+      width: 100%;
+      padding: 100px 20px 40px;
+      text-align: center;
+    }
+
+    .heading-container {
+      position: relative;
+      display: inline-block;
+      font-weight: 900;
+      font-size: 3rem;
+      line-height: 1.2;
+      z-index: 2;
+    }
+
+    .vinyl-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      width: 220px;
+      height: 220px;
+      z-index: 1;
+      opacity: 0.3;
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .hero p {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #555;
+      max-width: 500px;
+      margin-inline: auto;
+    }
+
+    .input-button {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 30px auto;
+    }
+
+    textarea {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: none;
+      width: 300px;
+      height: 70px;
+    }
+
+    button {
+      background: black;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #333;
+    }
+
+    #results {
+      list-style: none;
+      margin-top: 40px;
+      padding: 0;
+      max-width: 900px;
+      width: 90%;
+    }
+
+    #results li {
+      background: white;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    audio {
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    #error {
+      margin-top: 20px;
+      color: red;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="heading-container">
+      Emotion-Based<br>Music Recommender
+      <img src="vinyl.gif" alt="Vinyl Spinning" class="vinyl-bg">
+    </div>
+    <p>Describe your current mood and discover songs that match your vibe.</p>
+    <div class="input-button">
+      <textarea id="textInput" placeholder="How are you feeling?"></textarea>
+      <button onclick="sendText()">Get Songs ↓</button>
+    </div>
+    <div id="error"></div>
+  </section>
+
+  <ul id="results"></ul>
+
+  <script>
+    function sendText() {
+      document.getElementById("error").innerText = "";
+      const text = document.getElementById("textInput").value;
+      if (!text.trim()) {
+        alert("Please enter how you're feeling!");
+        return;
+      }
+
+      fetch("http://localhost:5000/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        const results = document.getElementById("results");
+        results.innerHTML = "";
+        if (!data.songs || data.songs.length === 0) {
+          results.innerHTML = "<li>No songs found. Try a different emotion!</li>";
+          return;
+        }
+
+        data.songs.forEach(song => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong>${song.name}</strong> by ${song.artist}
+            <a href="${song.url}" target="_blank">🔗</a>
+            ${song.preview ? `<audio controls src="${song.preview}"></audio>` : ''}
+          `;
+          results.appendChild(li);
+        });
+      })
+      .catch(error => {
+        document.getElementById("error").innerText = "Error: " + error.message;
+      });
+    }
+  </script>
+
+</body>
+</html>
+<!-- This HTML file provides a simple interface for users to input their emotions and receive music recommendations based on those emotions. -->
+<!-- The frontend uses a clean design with a spinning vinyl background, a text input for emotions, and a button to fetch recommendations. -->
